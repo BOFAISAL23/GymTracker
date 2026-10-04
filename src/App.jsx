@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AddProgress from "./pages/AddProgress";
 import EditProgress from "./pages/EditProgress";
+import Workouts from "./pages/Workouts";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -37,6 +38,15 @@ function App() {
           element={
             <ProtectedRoute>
               <EditProgress />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/workouts"
+          element={
+            <ProtectedRoute>
+              <Workouts />
             </ProtectedRoute>
           }
         />

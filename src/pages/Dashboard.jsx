@@ -45,6 +45,7 @@ ChartJS.register(
 function Dashboard() {
   const [userData, setUserData] = useState(null);
   const [progressData, setProgressData] = useState([]);
+  const [deleteId, setDeleteId] = useState(null);
 
   const navigate = useNavigate();
 
@@ -113,6 +114,11 @@ function Dashboard() {
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const confirmDelete = async () => {
+    await deleteProgress(deleteId);
+    setDeleteId(null);
   };
 
   const currentWeight =
@@ -242,6 +248,12 @@ function Dashboard() {
         </div>
 
         <div className="flex gap-3">
+          <Link to="/workouts">
+            <button className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl">
+              Workouts
+            </button>
+          </Link>
+
           <Link to="/add-progress">
             <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl">
               Add Progress
@@ -405,7 +417,7 @@ function Dashboard() {
                             </Link>
 
                             <button
-                              onClick={() => deleteProgress(item.id)}
+                              onClick={() => setDeleteId(item.id)}
                               className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg"
                             >
                               Delete
@@ -419,6 +431,34 @@ function Dashboard() {
             </div>
           )}
         </>
+      )}
+
+      {/* Delete confirmation */}
+      {deleteId && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-50">
+          <div className="bg-slate-800 rounded-2xl p-8 w-full max-w-sm shadow-lg">
+            <h3 className="text-2xl font-bold mb-2">Delete entry?</h3>
+            <p className="text-gray-400 mb-6">
+              This action cannot be undone.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteId(null)}
+                className="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-xl transition duration-300"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmDelete}
+                className="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded-xl transition duration-300"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
