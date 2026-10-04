@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../services/firebase";
+import { startDemo } from "../services/demo";
 import {
   FaDumbbell,
   FaChartLine,
@@ -42,6 +43,21 @@ const steps = [
 
 function Landing() {
   const [user, setUser] = useState(null);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleDemo = async () => {
+    setDemoLoading(true);
+    try {
+      await startDemo();
+      navigate("/dashboard");
+    } catch (error) {
+      console.log(error);
+      alert("Could not start the demo, please try again");
+    } finally {
+      setDemoLoading(false);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
@@ -109,11 +125,13 @@ function Landing() {
             </Link>
 
             {!user && (
-              <Link to="/login">
-                <button className="bg-slate-800 hover:bg-slate-700 px-8 py-3 rounded-xl font-semibold text-lg transition duration-300">
-                  Login
-                </button>
-              </Link>
+              <button
+                onClick={handleDemo}
+                disabled={demoLoading}
+                className="bg-slate-800 hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed px-8 py-3 rounded-xl font-semibold text-lg transition duration-300"
+              >
+                {demoLoading ? "Preparing demo..." : "Try Demo"}
+              </button>
             )}
           </div>
         </div>

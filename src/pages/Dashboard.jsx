@@ -269,6 +269,21 @@ function Dashboard() {
         </div>
       </div>
 
+      {userData?.isDemo && (
+        <div className="bg-blue-600/20 border border-blue-500 text-blue-200 rounded-xl px-5 py-3 mb-6 flex flex-wrap items-center justify-between gap-3">
+          <p>
+            You're viewing a demo account with sample data. Feel free to
+            explore, add, edit or delete anything.
+          </p>
+          <Link
+            to="/register"
+            className="font-semibold text-white underline hover:text-blue-200"
+          >
+            Create your own account
+          </Link>
+        </div>
+      )}
+
       {userData && (
         <>
           {/* Profile */}
