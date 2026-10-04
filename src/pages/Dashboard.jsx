@@ -128,7 +128,9 @@ function Dashboard() {
       : 0;
 
   const bmiStatus =
-    bmi < 18.5
+    Number(bmi) === 0
+      ? "-"
+      : bmi < 18.5
       ? "Underweight"
       : bmi < 25
       ? "Normal"
@@ -137,7 +139,9 @@ function Dashboard() {
       : "Obese";
 
   const bmiColor =
-    bmi < 18.5
+    Number(bmi) === 0
+      ? "text-gray-400"
+      : bmi < 18.5
       ? "text-blue-400"
       : bmi < 25
       ? "text-green-400"
@@ -192,35 +196,35 @@ function Dashboard() {
   };
 
   const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
+    responsive: true,
+    maintainAspectRatio: false,
 
-  plugins: {
-    legend: {
-      position: "top",
-    },
-  },
-
-  scales: {
-    y: {
-      ticks: {
-        color: "white",
-      },
-      grid: {
-        color: "#334155",
+    plugins: {
+      legend: {
+        position: "top",
       },
     },
 
-    x: {
-      ticks: {
-        color: "white",
+    scales: {
+      y: {
+        ticks: {
+          color: "white",
+        },
+        grid: {
+          color: "#334155",
+        },
       },
-      grid: {
-        color: "#334155",
+
+      x: {
+        ticks: {
+          color: "white",
+        },
+        grid: {
+          color: "#334155",
+        },
       },
     },
-  },
-};
+  };
 
   const cardClass =
     "bg-slate-800 rounded-2xl p-6 shadow-lg hover:scale-105 transition duration-300";
@@ -312,7 +316,9 @@ function Dashboard() {
 
             <div className={cardClass}>
               <h3 className="text-gray-400 text-sm">Status</h3>
-              <p className={`text-3xl font-bold mt-2 ${bmiColor}`}>{bmiStatus}</p>
+              <p className={`text-3xl font-bold mt-2 ${bmiColor}`}>
+                {bmiStatus}
+              </p>
             </div>
 
             <div className={cardClass}>
@@ -349,9 +355,9 @@ function Dashboard() {
             <>
               <h2 className="text-2xl font-bold mb-4">Weight Chart</h2>
 
-             <div className="bg-slate-800 rounded-2xl p-6 shadow-lg max-w-4xl mx-auto mb-6 h-[350px]">
-  <Line data={chartData} options={chartOptions} />
-</div>
+              <div className="bg-slate-800 rounded-2xl p-6 shadow-lg max-w-4xl mx-auto mb-6 h-[350px]">
+                <Line data={chartData} options={chartOptions} />
+              </div>
 
               <hr className="border-slate-700 mb-6" />
             </>
@@ -388,9 +394,7 @@ function Dashboard() {
                         <td className="p-3">{item.calories}</td>
                         <td className="p-3">{item.protein}</td>
                         <td className="p-3">
-                          <td>
-  {new Date(item.date).toLocaleString()}
-</td>
+                          {new Date(item.date).toLocaleString()}
                         </td>
                         <td className="p-3">
                           <button
