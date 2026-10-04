@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AddProgress from "./pages/AddProgress";
+import EditProgress from "./pages/EditProgress";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -27,6 +28,15 @@ function App() {
           element={
             <ProtectedRoute>
               <AddProgress />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/edit-progress/:id"
+          element={
+            <ProtectedRoute>
+              <EditProgress />
             </ProtectedRoute>
           }
         />

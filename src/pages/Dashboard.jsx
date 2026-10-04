@@ -397,12 +397,20 @@ function Dashboard() {
                           {new Date(item.date).toLocaleString()}
                         </td>
                         <td className="p-3">
-                          <button
-                            onClick={() => deleteProgress(item.id)}
-                            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg"
-                          >
-                            Delete
-                          </button>
+                          <div className="flex gap-2">
+                            <Link to={`/edit-progress/${item.id}`}>
+                              <button className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg">
+                                Edit
+                              </button>
+                            </Link>
+
+                            <button
+                              onClick={() => deleteProgress(item.id)}
+                              className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
