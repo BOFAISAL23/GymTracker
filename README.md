@@ -5,9 +5,15 @@ A fitness progress tracker where you log your weight, calories, protein and work
 **Live demo:** https://gym-tracker-38c81.web.app/
 Click **Try Demo** on the home page to explore with sample data, no sign-up needed.
 
-<!-- Add 3-4 screenshots here: dashboard, workouts page, mobile view
+## Screenshots
+
 ![Dashboard](screenshots/dashboard.png)
--->
+
+![Chart and history](screenshots/chart.png)
+
+![Workouts](screenshots/workouts.png)
+
+<img src="screenshots/mobile.png" alt="Mobile view" width="300" />
 
 ## Features
 
