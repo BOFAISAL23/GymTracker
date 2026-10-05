@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import AddProgress from "./pages/AddProgress";
 import EditProgress from "./pages/EditProgress";
 import Workouts from "./pages/Workouts";
+import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -52,6 +53,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

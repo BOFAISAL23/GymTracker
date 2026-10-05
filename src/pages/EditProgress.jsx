@@ -98,7 +98,7 @@ function EditProgress() {
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-5xl font-extrabold">Edit Progress</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold">Edit Progress</h1>
           <p className="text-gray-400 mt-2">
             Update the numbers for this entry
           </p>

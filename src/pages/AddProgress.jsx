@@ -67,7 +67,7 @@ function AddProgress() {
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-5xl font-extrabold">Add Progress</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold">Add Progress</h1>
           <p className="text-gray-400 mt-2">
             Log today's numbers and keep the streak going
           </p>

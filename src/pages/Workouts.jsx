@@ -155,7 +155,7 @@ function Workouts() {
             <FaDumbbell className="text-2xl" />
           </div>
           <div>
-            <h1 className="text-5xl font-extrabold">Workouts</h1>
+            <h1 className="text-4xl md:text-5xl font-extrabold">Workouts</h1>
             <p className="text-gray-400 mt-1">
               Log and manage your exercises
             </p>

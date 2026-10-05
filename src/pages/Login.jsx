@@ -34,7 +34,7 @@ function Login() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 mb-4 shadow-lg">
             <FaDumbbell className="text-3xl" />
           </div>
-          <h1 className="text-5xl font-extrabold">Gym Tracker</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold">Gym Tracker</h1>
           <p className="text-gray-400 mt-2">
             Sign in to continue your journey
           </p>

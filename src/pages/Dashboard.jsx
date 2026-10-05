@@ -238,16 +238,16 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-black text-white p-6">
       {/* Header */}
-      <div className="bg-slate-800 rounded-2xl p-6 mb-8 flex justify-between items-center">
+      <div className="bg-slate-800 rounded-2xl p-6 mb-8 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>
-          <h1 className="text-5xl font-extrabold">Gym Tracker</h1>
+          <h1 className="text-3xl md:text-5xl font-extrabold">Gym Tracker</h1>
 
           <p className="text-gray-400 mt-2">
             Welcome back, {userData?.name} 👋
           </p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Link to="/workouts">
             <button className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl">
               Workouts

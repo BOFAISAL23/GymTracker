@@ -67,12 +67,12 @@ function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-black text-white">
       {/* Navbar */}
-      <nav className="max-w-6xl mx-auto flex items-center justify-between p-6">
+      <nav className="max-w-6xl mx-auto flex items-center justify-between p-4 md:p-6">
         <div className="flex items-center gap-3">
           <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-600">
             <FaDumbbell />
           </div>
-          <span className="text-xl font-bold">Gym Tracker</span>
+          <span className="text-lg md:text-xl font-bold">Gym Tracker</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -85,12 +85,12 @@ function Landing() {
           ) : (
             <>
               <Link to="/login">
-                <button className="text-gray-300 hover:text-white px-4 py-2 transition duration-300">
+                <button className="text-gray-300 hover:text-white px-2 md:px-4 py-2 transition duration-300">
                   Login
                 </button>
               </Link>
               <Link to="/register">
-                <button className="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-xl font-semibold transition duration-300">
+                <button className="bg-blue-600 hover:bg-blue-700 px-4 md:px-5 py-2 rounded-xl font-semibold transition duration-300">
                   Get Started
                 </button>
               </Link>
