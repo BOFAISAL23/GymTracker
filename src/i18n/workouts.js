@@ -2,6 +2,11 @@ const part = {
   en: {
     "workouts.backToDashboard": "Back to Dashboard",
     "workouts.title": "Workouts",
+    "workouts.pickLib": "Choose from exercise library",
+    "workouts.hideLib": "Close library",
+    "workouts.searchLib": "Search exercises (e.g. biceps, squat)",
+    "workouts.allMuscles": "All",
+    "workouts.noExercise": "No exercises match. Type your own name below.",
     "workouts.subtitle": "Log and manage your exercises",
     "workouts.addTitle": "Add Workout",
     "workouts.editTitle": "Edit Workout",
@@ -27,6 +32,11 @@ const part = {
   ar: {
     "workouts.backToDashboard": "العودة للوحة التحكم",
     "workouts.title": "التمارين",
+    "workouts.pickLib": "اختر من مكتبة التمارين",
+    "workouts.hideLib": "اقفل المكتبة",
+    "workouts.searchLib": "ابحث عن تمرين (مثل: بايسبس، سكوات)",
+    "workouts.allMuscles": "الكل",
+    "workouts.noExercise": "ما فيه تمرين مطابق. اكتب اسم تمرينك تحت.",
     "workouts.subtitle": "سجّل تمارينك وتحكم فيها",
     "workouts.addTitle": "إضافة تمرين",
     "workouts.editTitle": "تعديل التمرين",

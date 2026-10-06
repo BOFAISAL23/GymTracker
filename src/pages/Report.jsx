@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { useLanguage } from "../i18n/LanguageContext";
 import { auth, db } from "../services/firebase";
 import { dayKey } from "../services/nutrition";
-import { C, Page, TopBar, Panel, SectionTitle, Plate, LinkBtn } from "../design/ui";
+import { adaptSuggestion } from "../services/adapt";
+import { C, Page, TopBar, Panel, SectionTitle, Plate, LinkBtn, Btn } from "../design/ui";
 
 const DAYS = 7;
 const r1 = (n) => Math.round(n * 10) / 10;
@@ -18,6 +19,9 @@ function Report() {
   const [goalType, setGoalType] = useState("maintain");
   const [meals, setMeals] = useState([]);
   const [weights, setWeights] = useState([]);
+  const [lastAction, setLastAction] = useState(null);
+  const [planMsg, setPlanMsg] = useState("");
+  const [planBusy, setPlanBusy] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -32,8 +36,15 @@ function Report() {
           const d = u.data();
           setGoalType(d.goalType || "maintain");
           if (d.calorieTarget) {
-            setTargets({ calories: d.calorieTarget, protein: d.proteinTarget || 0 });
+            setTargets({
+              calories: d.calorieTarget,
+              protein: d.proteinTarget || 0,
+              carbs: d.carbsTarget || 0,
+              fat: d.fatTarget || 0,
+            });
           }
+          const acts = [d.adaptAppliedAt, d.adaptDismissedAt].filter(Boolean).sort();
+          setLastAction(acts.length ? acts[acts.length - 1] : null);
         }
         setMeals(m.docs.map((x) => x.data()));
         setWeights(
@@ -98,6 +109,46 @@ function Report() {
       lastWeight,
     };
   }, [meals, weights, targets]);
+
+  // اقتراح تعديل الهدف (مبني على الوزن الفعلي)
+  const plan = useMemo(() => {
+    const cutoff = dayKey(new Date(Date.now() - 13 * 86400000));
+    const loggedDays14 = new Set(
+      meals.filter((m) => m.day >= cutoff).map((m) => m.day)
+    ).size;
+    return adaptSuggestion({ goalType, weights, loggedDays14, targets, lastActionAt: lastAction });
+  }, [goalType, weights, meals, targets, lastAction]);
+
+  const applyPlan = async () => {
+    if (plan.status !== "suggest") return;
+    setPlanBusy(true);
+    const now = new Date().toISOString();
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        calorieTarget: plan.newCal,
+        carbsTarget: plan.newCarbs,
+        adaptAppliedAt: now,
+      });
+      setTargets((p) => ({ ...p, calories: plan.newCal, carbs: plan.newCarbs }));
+      setLastAction(now);
+      setPlanMsg(t("report.planApplied", { cal: plan.newCal }));
+    } catch (e) {
+      console.log(e);
+      setPlanMsg(t("report.planErr"));
+    } finally {
+      setPlanBusy(false);
+    }
+  };
+
+  const dismissPlan = async () => {
+    const now = new Date().toISOString();
+    try {
+      await updateDoc(doc(db, "users", user.uid), { adaptDismissedAt: now });
+      setLastAction(now);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   // ملاحظات بسيطة مبنية على أرقامك فقط
   const notes = [];
@@ -173,6 +224,33 @@ function Report() {
                   />
                 )}
               </div>
+            </Panel>
+
+            <Panel className="p-5 md:p-6 mb-6">
+              <SectionTitle>{t("report.planTitle")}</SectionTitle>
+              {planMsg ? (
+                <p role="status" style={{ color: C.greenText }}>{planMsg}</p>
+              ) : plan.status === "suggest" ? (
+                <>
+                  <p className="mb-2">
+                    {t(`report.reason.${plan.reason}`, { rate: Math.abs(plan.rate) })}
+                  </p>
+                  <p className="mb-5 font-semibold">
+                    {t(plan.delta > 0 ? "report.planUp" : "report.planDown", {
+                      n: Math.abs(plan.delta),
+                      cal: plan.newCal,
+                    })}
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <Btn onClick={applyPlan} disabled={planBusy}>{t("report.planApply")}</Btn>
+                    <Btn variant="ghost" onClick={dismissPlan}>{t("report.planLater")}</Btn>
+                  </div>
+                </>
+              ) : (
+                <p style={{ color: plan.status === "onTrack" ? C.chalk : C.dim }}>
+                  {t(`report.plan.${plan.status}`, { rate: Math.abs(plan.rate ?? 0), n: plan.daysLeft })}
+                </p>
+              )}
             </Panel>
 
             <Panel className="p-5 md:p-6 mb-6">

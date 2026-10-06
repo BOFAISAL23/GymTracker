@@ -11,15 +11,96 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../services/firebase";
 import { useLanguage } from "../i18n/LanguageContext";
+import { MUSCLES, EXERCISES, exerciseImg, findExercise } from "../services/exercises";
 import { C, Page, TopBar, Panel, SectionTitle, Btn, Field, inputClass, inputStyle } from "../design/ui";
 
+// معرض التمارين: تختار العضلة وتشوف صورة كل تمرين
+function ExercisePicker({ onPick, lang, t }) {
+  const [muscle, setMuscle] = useState("all");
+  const [q, setQ] = useState("");
+  const [hover, setHover] = useState(null);
+
+  const list = EXERCISES.filter((e) => {
+    if (muscle !== "all" && e.muscle !== muscle) return false;
+    const s = q.trim().toLowerCase();
+    return !s || e.ar.includes(s) || e.en.toLowerCase().includes(s);
+  });
+
+  const chip = (active) => ({
+    background: active ? C.chalk : "transparent",
+    color: active ? C.rubber : C.chalk,
+    border: `1px solid ${active ? C.chalk : C.line}`,
+  });
+
+  return (
+    <div className="md:col-span-2 rounded p-4" style={{ background: C.rubber, border: `1px solid ${C.line}` }}>
+      <input
+        type="text"
+        dir="auto"
+        placeholder={t("workouts.searchLib")}
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        className={`${inputClass} text-start mb-3`}
+        style={inputStyle}
+      />
+      <div className="flex flex-wrap gap-2 mb-4">
+        {[{ id: "all" }, ...MUSCLES].map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            aria-pressed={muscle === m.id}
+            onClick={() => setMuscle(m.id)}
+            className="min-h-[40px] px-3 rounded text-sm"
+            style={chip(muscle === m.id)}
+          >
+            {m.id === "all" ? t("workouts.allMuscles") : lang === "ar" ? m.ar : m.en}
+          </button>
+        ))}
+      </div>
+
+      {list.length === 0 ? (
+        <p className="text-sm" style={{ color: C.dim }}>{t("workouts.noExercise")}</p>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[420px] overflow-y-auto pe-1">
+          {list.map((e) => (
+            <button
+              key={e.id}
+              type="button"
+              onClick={() => onPick(e)}
+              onMouseEnter={() => setHover(e.id)}
+              onMouseLeave={() => setHover(null)}
+              onFocus={() => setHover(e.id)}
+              onBlur={() => setHover(null)}
+              className="text-start rounded overflow-hidden focus-visible:outline focus-visible:outline-2"
+              style={{ background: C.panel, border: `1px solid ${C.line}`, outlineColor: C.chalk }}
+            >
+              <img
+                src={exerciseImg(e.id, hover === e.id && e.imgs > 1 ? 1 : 0)}
+                alt=""
+                loading="lazy"
+                className="w-full aspect-[4/3] object-cover"
+                style={{ background: "#fff" }}
+              />
+              <span className="block px-3 py-2 text-sm font-semibold">
+                {lang === "ar" ? e.ar : e.en}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Workouts() {
-  const { t, formatDate } = useLanguage();
+  const { t, lang, formatDate } = useLanguage();
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState("");
+  const [exerciseId, setExerciseId] = useState("");
+  const [showLib, setShowLib] = useState(false);
   const [sets, setSets] = useState("");
   const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
@@ -59,6 +140,8 @@ function Workouts() {
 
   const resetForm = () => {
     setName("");
+    setExerciseId("");
+    setShowLib(false);
     setSets("");
     setReps("");
     setWeight("");
@@ -75,6 +158,7 @@ function Workouts() {
 
     const data = {
       name: name.trim(),
+      exerciseId: exerciseId || "",
       sets: Number(sets),
       reps: Number(reps),
       weight: Number(weight),
@@ -115,6 +199,7 @@ function Workouts() {
   const startEdit = (w) => {
     setEditingId(w.id);
     setName(w.name);
+    setExerciseId(w.exerciseId || "");
     setSets(w.sets);
     setReps(w.reps);
     setWeight(w.weight);
@@ -157,12 +242,41 @@ function Workouts() {
             </h2>
 
             <div className="grid md:grid-cols-2 gap-4 mb-6">
+              <div className="md:col-span-2 flex flex-wrap items-center gap-3">
+                <Btn type="button" variant="ghost" onClick={() => setShowLib(!showLib)}>
+                  {showLib ? t("workouts.hideLib") : t("workouts.pickLib")}
+                </Btn>
+                {exerciseId && findExercise(exerciseId) && (
+                  <img
+                    src={exerciseImg(exerciseId, 0)}
+                    alt={name}
+                    className="h-12 w-16 object-cover rounded"
+                    style={{ background: "#fff" }}
+                  />
+                )}
+              </div>
+
+              {showLib && (
+                <ExercisePicker
+                  lang={lang}
+                  t={t}
+                  onPick={(e) => {
+                    setName(lang === "ar" ? e.ar : e.en);
+                    setExerciseId(e.id);
+                    setShowLib(false);
+                  }}
+                />
+              )}
+
               <Field label={t("workouts.exercise")} className="md:col-span-2">
                 <input
                   type="text"
                   placeholder={t("workouts.exercisePlaceholder")}
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setExerciseId("");
+                  }}
                   required
                   className={ic}
                   style={inputStyle}
@@ -258,7 +372,20 @@ function Workouts() {
               <tbody>
                 {workouts.map((w) => (
                   <tr key={w.id} style={{ borderBottom: `1px solid ${C.line}` }}>
-                    <td className="py-3 px-3 font-bold">{w.name}</td>
+                    <td className="py-3 px-3 font-bold">
+                      <span className="flex items-center gap-3">
+                        {w.exerciseId && findExercise(w.exerciseId) && (
+                          <img
+                            src={exerciseImg(w.exerciseId, 0)}
+                            alt=""
+                            loading="lazy"
+                            className="h-10 w-14 object-cover rounded shrink-0"
+                            style={{ background: "#fff" }}
+                          />
+                        )}
+                        {w.name}
+                      </span>
+                    </td>
                     <td className="py-3 px-3">
                       <span dir="ltr" className="inline-block">
                         {w.sets} × {w.reps}
