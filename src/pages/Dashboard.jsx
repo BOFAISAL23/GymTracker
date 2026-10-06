@@ -254,6 +254,12 @@ function Dashboard() {
             </button>
           </Link>
 
+          <Link to="/onboarding">
+            <button className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl">
+              My Plan
+            </button>
+          </Link>
+
           <Link to="/add-progress">
             <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl">
               Add Progress
@@ -374,6 +380,55 @@ function Dashboard() {
               </div>
             </div>
           </div>
+
+          {/* Daily target */}
+          {userData?.calorieTarget && (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold">Daily Target</h2>
+                <Link
+                  to="/onboarding"
+                  className="text-blue-400 hover:text-blue-300 text-sm font-semibold"
+                >
+                  Edit plan
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+                <div className="bg-blue-600/20 border border-blue-500 rounded-2xl p-6">
+                  <h3 className="text-gray-300 text-sm">Calories</h3>
+                  <p className="text-3xl font-bold mt-2">
+                    {userData.calorieTarget}
+                    <span className="text-base text-gray-400"> kcal</span>
+                  </p>
+                </div>
+
+                <div className="bg-slate-800 rounded-2xl p-6 shadow-lg">
+                  <h3 className="text-gray-400 text-sm">Protein</h3>
+                  <p className="text-3xl font-bold mt-2">
+                    {userData.proteinTarget}
+                    <span className="text-base text-gray-400"> g</span>
+                  </p>
+                </div>
+
+                <div className="bg-slate-800 rounded-2xl p-6 shadow-lg">
+                  <h3 className="text-gray-400 text-sm">Carbs</h3>
+                  <p className="text-3xl font-bold mt-2">
+                    {userData.carbsTarget}
+                    <span className="text-base text-gray-400"> g</span>
+                  </p>
+                </div>
+
+                <div className="bg-slate-800 rounded-2xl p-6 shadow-lg">
+                  <h3 className="text-gray-400 text-sm">Fat</h3>
+                  <p className="text-3xl font-bold mt-2">
+                    {userData.fatTarget}
+                    <span className="text-base text-gray-400"> g</span>
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
 
           <hr className="border-slate-700 mb-6" />
 

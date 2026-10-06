@@ -42,6 +42,15 @@ export async function startDemo() {
     goalWeight: 75,
     email: "demo@gymtracker.app",
     isDemo: true,
+    // الديمو يتخطى الاستبيان ومعه أهداف جاهزة
+    onboardingDone: true,
+    sex: "male",
+    activity: "moderate",
+    goalType: "cut",
+    calorieTarget: 2200,
+    proteinTarget: 170,
+    carbsTarget: 220,
+    fatTarget: 61,
   });
 
   const now = Date.now();

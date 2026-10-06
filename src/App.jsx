@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import AddProgress from "./pages/AddProgress";
 import EditProgress from "./pages/EditProgress";
 import Workouts from "./pages/Workouts";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -17,6 +18,15 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute skipOnboardingCheck>
+              <Onboarding />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/dashboard"
