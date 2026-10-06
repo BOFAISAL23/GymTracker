@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../services/firebase";
+import { friendlyAuthError } from "../services/authErrors";
 import { doc, setDoc } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
-import { FaDumbbell } from "react-icons/fa";
+import { FaDumbbell, FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Register() {
   const [name, setName] = useState("");
@@ -13,36 +14,59 @@ function Register() {
   const [goalWeight, setGoalWeight] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
   const registerUser = async (e) => {
     e.preventDefault();
+    setError("");
+
+    // تحقق بسيط قبل الإرسال
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (Number(age) < 10 || Number(age) > 100) {
+      setError("Please enter a valid age.");
+      return;
+    }
+    if (Number(height) < 100 || Number(height) > 250) {
+      setError("Height should be between 100 and 250 cm.");
+      return;
+    }
+    if (Number(goalWeight) < 30 || Number(goalWeight) > 300) {
+      setError("Goal weight should be between 30 and 300 KG.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        email,
+        email.trim(),
         password
       );
 
       const user = userCredential.user;
 
       await setDoc(doc(db, "users", user.uid), {
-        name,
+        name: name.trim(),
         age,
-        goal,
+        goal: goal.trim(),
         height: Number(height),
         goalWeight: Number(goalWeight),
-        email,
+        email: email.trim(),
       });
 
       navigate("/dashboard");
-    } catch (error) {
-      console.log(error);
-      alert(error.code);
+    } catch (err) {
+      console.log(err);
+      setError(friendlyAuthError(err.code));
     } finally {
       setLoading(false);
     }
@@ -71,6 +95,15 @@ function Register() {
           className="bg-slate-800 rounded-2xl p-8 shadow-lg"
         >
           <h2 className="text-2xl font-bold mb-6">Register</h2>
+
+          {error && (
+            <div
+              role="alert"
+              className="bg-red-500/10 border border-red-500 text-red-300 rounded-xl px-4 py-3 mb-6 text-sm"
+            >
+              {error}
+            </div>
+          )}
 
           {/* Personal info */}
           <p className="text-gray-400 text-xs uppercase tracking-wider mb-3">
@@ -145,7 +178,7 @@ function Register() {
           </p>
 
           <div className="grid md:grid-cols-2 gap-5 mb-8">
-            <div>
+            <div className="md:col-span-2">
               <label className={labelClass}>Email</label>
               <input
                 type="email"
@@ -153,19 +186,45 @@ function Register() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 className={inputClass}
               />
             </div>
 
             <div>
               <label className={labelClass}>Password</label>
+              <div className="flex items-center gap-3 bg-slate-700 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="At least 6 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  className="bg-transparent outline-none w-full placeholder-gray-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="text-gray-400 hover:text-white"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>Confirm Password</label>
               <input
-                type="password"
-                placeholder="At least 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type={showPassword ? "text" : "password"}
+                placeholder="Repeat your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
+                autoComplete="new-password"
                 className={inputClass}
               />
             </div>
