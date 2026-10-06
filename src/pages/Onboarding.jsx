@@ -133,12 +133,16 @@ function Onboarding() {
         { merge: true }
       );
 
-      // إذا ما عنده أي سجل وزن، نضيف أول سجل بوزنه الحالي
+      // نضيف سجل وزن جديد إذا ما عنده سجلات، أو إذا غيّر وزنه عن آخر سجل
       const existing = await getDocs(
         query(collection(db, "progress"), where("userId", "==", user.uid))
       );
 
-      if (existing.empty) {
+      const entries = existing.docs.map((x) => x.data());
+      entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+      const lastWeight = entries.length > 0 ? Number(entries[0].weight) : null;
+
+      if (lastWeight === null || lastWeight !== Number(weight)) {
         await addDoc(collection(db, "progress"), {
           userId: user.uid,
           weight: Number(weight),

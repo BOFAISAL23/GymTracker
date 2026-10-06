@@ -1,6 +1,7 @@
 import { signInAnonymously } from "firebase/auth";
 import { doc, getDoc, setDoc, addDoc, collection } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { dayKey } from "./nutrition";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -74,4 +75,27 @@ export async function startDemo() {
   );
 
   await Promise.all([...progressWrites, ...workoutWrites]);
+
+  // وجبات اليوم التجريبية. إذا قواعد meals ما نُشرت بعد، نتجاهل الخطأ بدون ما نكسر الديمو
+  const todayKey = dayKey();
+  const mealSamples = [
+    { mealType: "breakfast", name: "بيض مسلوق", qty: 3, calories: 234, protein: 18, carbs: 3, fat: 15 },
+    { mealType: "lunch", name: "كبسة دجاج", qty: 1, calories: 750, protein: 40, carbs: 95, fat: 22 },
+    { mealType: "snack", name: "بروتين شيك (واي)", qty: 1, calories: 120, protein: 24, carbs: 3, fat: 1.5 },
+  ];
+  try {
+    await Promise.all(
+      mealSamples.map((m) =>
+        addDoc(collection(db, "meals"), {
+          userId: user.uid,
+          day: todayKey,
+          date: new Date().toISOString(),
+          source: "database",
+          ...m,
+        })
+      )
+    );
+  } catch (err) {
+    console.log("Demo meals skipped:", err);
+  }
 }

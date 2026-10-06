@@ -248,6 +248,12 @@ function Dashboard() {
         </div>
 
         <div className="flex flex-wrap gap-3">
+          <Link to="/meals">
+            <button className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-xl">
+              Meals
+            </button>
+          </Link>
+
           <Link to="/workouts">
             <button className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl">
               Workouts

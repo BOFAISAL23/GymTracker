@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import AddProgress from "./pages/AddProgress";
 import EditProgress from "./pages/EditProgress";
 import Workouts from "./pages/Workouts";
+import Meals from "./pages/Meals";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -51,6 +52,15 @@ function App() {
           element={
             <ProtectedRoute>
               <EditProgress />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/meals"
+          element={
+            <ProtectedRoute>
+              <Meals />
             </ProtectedRoute>
           }
         />
