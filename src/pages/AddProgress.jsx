@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { auth, db } from "../services/firebase";
-import { useNavigate, Link } from "react-router-dom";
-import {
-  FaWeight,
-  FaFire,
-  FaDrumstickBite,
-  FaArrowLeft,
-} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../i18n/LanguageContext";
+import { C, Page, TopBar, Panel, Btn, Field, inputClass, inputStyle } from "../design/ui";
 
 function AddProgress() {
+  const { t } = useLanguage();
   const [weight, setWeight] = useState("");
   const [calories, setCalories] = useState("");
   const [protein, setProtein] = useState("");
@@ -23,7 +20,7 @@ function AddProgress() {
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
-      alert("Please login first");
+      alert(t("progress.loginFirst"));
       navigate("/login");
       return;
     }
@@ -42,94 +39,76 @@ function AddProgress() {
       navigate("/dashboard");
     } catch (error) {
       console.log(error);
-      alert("Something went wrong, please try again");
+      alert(t("common.genericError"));
     } finally {
       setLoading(false);
     }
   };
 
-  const labelClass = "block text-gray-400 text-sm mb-2";
-  const boxClass =
-    "flex items-center gap-3 bg-slate-700 rounded-xl px-4 py-3 mb-5 focus-within:ring-2 focus-within:ring-blue-500";
-  const inputClass =
-    "bg-transparent outline-none w-full placeholder-gray-500";
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-black text-white flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        {/* Back link */}
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition duration-300"
-        >
-          <FaArrowLeft />
-          Back to Dashboard
-        </Link>
+    <Page>
+      <TopBar />
+      <main className="max-w-3xl mx-auto px-5 py-8">
+        <h1 className="text-3xl font-bold">{t("progress.addTitle")}</h1>
+        <p className="mt-2 mb-8" style={{ color: C.dim }}>
+          {t("progress.addSubtitle")}
+        </p>
 
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-extrabold">Add Progress</h1>
-          <p className="text-gray-400 mt-2">
-            Log today's numbers and keep the streak going
-          </p>
-        </div>
+        <Panel className="p-6 md:p-8">
+          <form onSubmit={saveProgress} className="space-y-6">
+            <Field label={<><span aria-hidden="true" className="inline-block rounded-full me-2" style={{ width: 10, height: 10, background: C.blue }} />{t("progress.weightKg")}</>}>
+              <input
+                type="number"
+                dir="ltr"
+                step="0.1"
+                min="0"
+                placeholder="80.5"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                required
+                className={`${inputClass} text-start`}
+                style={inputStyle}
+              />
+            </Field>
+            <Field label={<><span aria-hidden="true" className="inline-block rounded-full me-2" style={{ width: 10, height: 10, background: C.chalk }} />{t("progress.caloriesKcal")}</>}>
+              <input
+                type="number"
+                dir="ltr"
+                min="0"
+                placeholder="2200"
+                value={calories}
+                onChange={(e) => setCalories(e.target.value)}
+                required
+                className={`${inputClass} text-start`}
+                style={inputStyle}
+              />
+            </Field>
+            <Field label={<><span aria-hidden="true" className="inline-block rounded-full me-2" style={{ width: 10, height: 10, background: C.red }} />{t("progress.proteinG")}</>}>
+              <input
+                type="number"
+                dir="ltr"
+                min="0"
+                placeholder="150"
+                value={protein}
+                onChange={(e) => setProtein(e.target.value)}
+                required
+                className={`${inputClass} text-start`}
+                style={inputStyle}
+              />
+            </Field>
 
-        <form
-          onSubmit={saveProgress}
-          className="bg-slate-800 rounded-2xl p-8 shadow-lg"
-        >
-          <label className={labelClass}>Weight (KG)</label>
-          <div className={boxClass}>
-            <FaWeight className="text-blue-400" />
-            <input
-              type="number"
-              step="0.1"
-              min="0"
-              placeholder="80.5"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              required
-              className={inputClass}
-            />
-          </div>
-
-          <label className={labelClass}>Calories (kcal)</label>
-          <div className={boxClass}>
-            <FaFire className="text-orange-400" />
-            <input
-              type="number"
-              min="0"
-              placeholder="2200"
-              value={calories}
-              onChange={(e) => setCalories(e.target.value)}
-              required
-              className={inputClass}
-            />
-          </div>
-
-          <label className={labelClass}>Protein (g)</label>
-          <div className={`${boxClass} mb-8`}>
-            <FaDrumstickBite className="text-green-400" />
-            <input
-              type="number"
-              min="0"
-              placeholder="150"
-              value={protein}
-              onChange={(e) => setProtein(e.target.value)}
-              required
-              className={inputClass}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed py-3 rounded-xl font-semibold transition duration-300"
-          >
-            {loading ? "Saving..." : "Save Progress"}
-          </button>
-        </form>
-      </div>
-    </div>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Btn type="submit" disabled={loading}>
+                {loading ? t("progress.saving") : t("progress.saveProgress")}
+              </Btn>
+              <Btn type="button" variant="ghost" onClick={() => navigate("/dashboard")}>
+                {t("common.cancel")}
+              </Btn>
+            </div>
+          </form>
+        </Panel>
+      </main>
+    </Page>
   );
 }
 

@@ -79,9 +79,9 @@ export async function startDemo() {
   // وجبات اليوم التجريبية. إذا قواعد meals ما نُشرت بعد، نتجاهل الخطأ بدون ما نكسر الديمو
   const todayKey = dayKey();
   const mealSamples = [
-    { mealType: "breakfast", name: "بيض مسلوق", qty: 3, calories: 234, protein: 18, carbs: 3, fat: 15 },
-    { mealType: "lunch", name: "كبسة دجاج", qty: 1, calories: 750, protein: 40, carbs: 95, fat: 22 },
-    { mealType: "snack", name: "بروتين شيك (واي)", qty: 1, calories: 120, protein: 24, carbs: 3, fat: 1.5 },
+    { mealType: "breakfast", name: "بيض مسلوق", nameEn: "Boiled egg", qty: 3, calories: 234, protein: 18, carbs: 3, fat: 15 },
+    { mealType: "lunch", name: "كبسة دجاج", nameEn: "Chicken kabsa", qty: 1, calories: 750, protein: 40, carbs: 95, fat: 22 },
+    { mealType: "snack", name: "بروتين شيك (واي)", nameEn: "Whey protein", qty: 1, calories: 120, protein: 24, carbs: 3, fat: 1.5 },
   ];
   try {
     await Promise.all(

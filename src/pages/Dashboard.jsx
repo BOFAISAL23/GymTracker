@@ -11,13 +11,19 @@ import {
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
-
+import { useLanguage } from "../i18n/LanguageContext";
 import {
-  FaWeight,
-  FaBullseye,
-  FaChartLine,
-  FaHeartbeat,
-} from "react-icons/fa";
+  C,
+  Page,
+  TopBar,
+  Panel,
+  SectionTitle,
+  Plate,
+  PlateBar,
+  LedgerRow,
+  Btn,
+  LinkBtn,
+} from "../design/ui";
 
 import {
   Chart as ChartJS,
@@ -25,24 +31,15 @@ import {
   LinearScale,
   PointElement,
   LineElement,
-  Title,
   Tooltip,
-  Legend,
 } from "chart.js";
 
 import { Line } from "react-chartjs-2";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip);
 
 function Dashboard() {
+  const { t, formatDate } = useLanguage();
   const [userData, setUserData] = useState(null);
   const [progressData, setProgressData] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
@@ -144,16 +141,23 @@ function Dashboard() {
       ? "Overweight"
       : "Obese";
 
-  const bmiColor =
+  const bmiStatusKey = {
+    Underweight: "dashboard.bmiUnderweight",
+    Normal: "dashboard.bmiNormal",
+    Overweight: "dashboard.bmiOverweight",
+    Obese: "dashboard.bmiObese",
+  }[bmiStatus];
+
+  const bmiTone =
     Number(bmi) === 0
-      ? "text-gray-400"
+      ? C.dim
       : bmi < 18.5
-      ? "text-blue-400"
+      ? C.blueText
       : bmi < 25
-      ? "text-green-400"
+      ? C.greenText
       : bmi < 30
-      ? "text-yellow-400"
-      : "text-red-400";
+      ? C.yellowText
+      : C.redText;
 
   const goalWeight = userData?.goalWeight || 75;
 
@@ -187,16 +191,23 @@ function Dashboard() {
   );
 
   const chartData = {
-    labels: progressData.map((_, index) => `Entry ${index + 1}`),
+    labels: progressData.map((item, index) =>
+      item.date && !isNaN(new Date(item.date))
+        ? formatDate(item.date, { day: "numeric", month: "short" })
+        : t("dashboard.entryN", { n: index + 1 })
+    ),
 
     datasets: [
       {
-        label: "Weight Progress",
+        label: t("dashboard.chartLabel"),
         data: progressData.map((item) => Number(item.weight)),
-        borderColor: "rgb(75, 192, 192)",
-        backgroundColor: "rgba(75, 192, 192, 0.5)",
+        borderColor: C.blueText,
+        backgroundColor: C.chalk,
+        pointBackgroundColor: C.chalk,
+        pointBorderColor: C.blueText,
+        pointRadius: 4,
         borderWidth: 3,
-        tension: 0.3,
+        tension: 0.25,
       },
     ],
   };
@@ -204,339 +215,216 @@ function Dashboard() {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-
-    plugins: {
-      legend: {
-        position: "top",
-      },
-    },
-
+    plugins: { legend: { display: false } },
     scales: {
-      y: {
-        ticks: {
-          color: "white",
-        },
-        grid: {
-          color: "#334155",
-        },
-      },
-
-      x: {
-        ticks: {
-          color: "white",
-        },
-        grid: {
-          color: "#334155",
-        },
-      },
+      y: { ticks: { color: C.dim }, grid: { color: C.line } },
+      x: { ticks: { color: C.dim }, grid: { color: C.line } },
     },
   };
 
-  const cardClass =
-    "bg-slate-800 rounded-2xl p-6 shadow-lg hover:scale-105 transition duration-300";
+  const goalText = userData
+    ? ["cut", "bulk", "maintain"].includes(userData.goalType)
+      ? t(`goal.${userData.goalType}`)
+      : userData.goal
+    : "";
+
+  const th = "text-start py-3 px-3 font-normal text-sm";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-black text-white p-6">
-      {/* Header */}
-      <div className="bg-slate-800 rounded-2xl p-6 mb-8 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-        <div>
-          <h1 className="text-3xl md:text-5xl font-extrabold">Gym Tracker</h1>
+    <Page>
+      <TopBar />
 
-          <p className="text-gray-400 mt-2">
-            Welcome back, {userData?.name} 👋
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <Link to="/meals">
-            <button className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-xl">
-              Meals
-            </button>
-          </Link>
-
-          <Link to="/workouts">
-            <button className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl">
-              Workouts
-            </button>
-          </Link>
-
-          <Link to="/onboarding">
-            <button className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl">
-              My Plan
-            </button>
-          </Link>
-
-          <Link to="/add-progress">
-            <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl">
-              Add Progress
-            </button>
-          </Link>
-
-          <button
-            onClick={logoutUser}
-            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl"
+      <main className="max-w-6xl mx-auto px-5 py-8">
+        {userData?.isDemo && (
+          <Panel
+            className="px-5 py-4 mb-8 flex flex-wrap items-center justify-between gap-3"
+            style={{ borderInlineStart: `4px solid ${C.yellow}` }}
           >
-            Logout
-          </button>
-        </div>
-      </div>
+            <p>{t("dashboard.demoBanner")}</p>
+            <Link
+              to="/register"
+              className="font-semibold underline underline-offset-4"
+            >
+              {t("dashboard.createAccount")}
+            </Link>
+          </Panel>
+        )}
 
-      {userData?.isDemo && (
-        <div className="bg-blue-600/20 border border-blue-500 text-blue-200 rounded-xl px-5 py-3 mb-6 flex flex-wrap items-center justify-between gap-3">
-          <p>
-            You're viewing a demo account with sample data. Feel free to
-            explore, add, edit or delete anything.
-          </p>
-          <Link
-            to="/register"
-            className="font-semibold text-white underline hover:text-blue-200"
-          >
-            Create your own account
-          </Link>
-        </div>
-      )}
+        {userData && (
+          <>
+            {/* Hero: who you are + goal bar + current weight plate */}
+            <section className="grid md:grid-cols-[1fr_auto] gap-10 items-center mb-12">
+              <div>
+                <p style={{ color: C.dim }}>{goalText}</p>
+                <h1 className="text-3xl md:text-5xl font-bold leading-tight mt-1 mb-8">
+                  {t("dashboard.welcome", { name: userData.name || "" })}
+                </h1>
 
-      {userData && (
-        <>
-          {/* Profile */}
-          <div className="bg-slate-800 rounded-2xl p-6 mb-6 shadow-lg">
-            <h2 className="text-2xl font-bold mb-5">Profile</h2>
-
-            <div className="grid md:grid-cols-4 gap-4">
-              <div className="bg-slate-700 p-4 rounded-xl">
-                <p className="text-gray-400">Name</p>
-                <p className="font-semibold">{userData.name}</p>
+                <div className="flex items-baseline justify-between gap-4 mb-3">
+                  <span style={{ color: C.dim }}>{t("dashboard.goalProgress")}</span>
+                  <span className="text-3xl font-bold tabular-nums">{goalProgress}%</span>
+                </div>
+                <PlateBar percent={Number(goalProgress)} />
+                <p className="text-sm mt-3" style={{ color: C.dim }}>
+                  {t("dashboard.goalWeight")}: {goalWeight} {t("common.kg")}
+                </p>
               </div>
 
-              <div className="bg-slate-700 p-4 rounded-xl">
-                <p className="text-gray-400">Age</p>
-                <p className="font-semibold">{userData.age}</p>
+              <div className="justify-self-center">
+                <Plate
+                  color={C.blue}
+                  ink="#fff"
+                  size={190}
+                  value={currentWeight}
+                  unit={t("common.kg")}
+                  label={t("dashboard.currentWeight")}
+                />
               </div>
+            </section>
 
-              <div className="bg-slate-700 p-4 rounded-xl">
-                <p className="text-gray-400">Email</p>
-                <p className="font-semibold">{userData.email}</p>
-              </div>
+            {/* Body ledger + daily target plates */}
+            <div className="grid lg:grid-cols-2 gap-6 mb-12">
+              <Panel className="p-6">
+                <SectionTitle>{t("dashboard.body")}</SectionTitle>
+                <LedgerRow label={t("dashboard.startingWeight")} value={`${startingWeight} ${t("common.kg")}`} />
+                <LedgerRow label={t("dashboard.weightLost")} value={`${weightLost} ${t("common.kg")}`} />
+                <LedgerRow label={t("dashboard.remaining")} value={`${remainingWeight} ${t("common.kg")}`} />
+                <LedgerRow label={t("dashboard.bmi")} value={bmi} />
+                <LedgerRow
+                  label={t("dashboard.status")}
+                  value={bmiStatusKey ? t(bmiStatusKey) : bmiStatus}
+                  valueColor={bmiTone}
+                />
+              </Panel>
 
-              <div className="bg-slate-700 p-4 rounded-xl">
-                <p className="text-gray-400">Goal</p>
-                <p className="font-semibold">{userData.goal}</p>
-              </div>
-            </div>
-          </div>
-
-          <hr className="border-slate-700 mb-6" />
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-            <div className={cardClass}>
-              <div className="flex items-center gap-2 text-gray-400">
-                <FaWeight />
-                <h3 className="text-sm">Starting Weight</h3>
-              </div>
-              <p className="text-3xl font-bold mt-2">{startingWeight} KG</p>
-            </div>
-
-            <div className={cardClass}>
-              <div className="flex items-center gap-2 text-gray-400">
-                <FaChartLine />
-                <h3 className="text-sm">Current Weight</h3>
-              </div>
-              <p className="text-3xl font-bold mt-2">{currentWeight} KG</p>
-            </div>
-
-            <div className={cardClass}>
-              <div className="flex items-center gap-2 text-gray-400">
-                <FaHeartbeat />
-                <h3 className="text-sm">BMI</h3>
-              </div>
-              <p className="text-3xl font-bold mt-2">{bmi}</p>
-            </div>
-
-            <div className={cardClass}>
-              <h3 className="text-gray-400 text-sm">Status</h3>
-              <p className={`text-3xl font-bold mt-2 ${bmiColor}`}>
-                {bmiStatus}
-              </p>
-            </div>
-
-            <div className={cardClass}>
-              <h3 className="text-gray-400 text-sm">Remaining</h3>
-              <p className="text-3xl font-bold mt-2">{remainingWeight} KG</p>
-            </div>
-
-            <div className={cardClass}>
-              <h3 className="text-gray-400 text-sm">Weight Lost</h3>
-              <p className="text-3xl font-bold mt-2">{weightLost} KG</p>
-            </div>
-
-            <div className={cardClass}>
-              <div className="flex items-center gap-2 text-gray-400">
-                <FaBullseye />
-                <h3 className="text-sm">Goal Progress</h3>
-              </div>
-
-              <p className="text-3xl font-bold mt-2">{goalProgress}%</p>
-
-              <div className="w-full bg-slate-700 rounded-full h-3 mt-4">
-                <div
-                  className="bg-green-500 h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${progressBarWidth}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Daily target */}
-          {userData?.calorieTarget && (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">Daily Target</h2>
-                <Link
-                  to="/onboarding"
-                  className="text-blue-400 hover:text-blue-300 text-sm font-semibold"
+              <Panel className="p-6">
+                <SectionTitle
+                  action={
+                    <Link
+                      to="/onboarding"
+                      className="text-sm underline underline-offset-4"
+                      style={{ color: C.dim }}
+                    >
+                      {t("dashboard.editPlan")}
+                    </Link>
+                  }
                 >
-                  Edit plan
-                </Link>
-              </div>
+                  {t("dashboard.dailyTarget")}
+                </SectionTitle>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-                <div className="bg-blue-600/20 border border-blue-500 rounded-2xl p-6">
-                  <h3 className="text-gray-300 text-sm">Calories</h3>
-                  <p className="text-3xl font-bold mt-2">
-                    {userData.calorieTarget}
-                    <span className="text-base text-gray-400"> kcal</span>
-                  </p>
-                </div>
-
-                <div className="bg-slate-800 rounded-2xl p-6 shadow-lg">
-                  <h3 className="text-gray-400 text-sm">Protein</h3>
-                  <p className="text-3xl font-bold mt-2">
-                    {userData.proteinTarget}
-                    <span className="text-base text-gray-400"> g</span>
-                  </p>
-                </div>
-
-                <div className="bg-slate-800 rounded-2xl p-6 shadow-lg">
-                  <h3 className="text-gray-400 text-sm">Carbs</h3>
-                  <p className="text-3xl font-bold mt-2">
-                    {userData.carbsTarget}
-                    <span className="text-base text-gray-400"> g</span>
-                  </p>
-                </div>
-
-                <div className="bg-slate-800 rounded-2xl p-6 shadow-lg">
-                  <h3 className="text-gray-400 text-sm">Fat</h3>
-                  <p className="text-3xl font-bold mt-2">
-                    {userData.fatTarget}
-                    <span className="text-base text-gray-400"> g</span>
-                  </p>
-                </div>
-              </div>
-            </>
-          )}
-
-          <hr className="border-slate-700 mb-6" />
-
-          {/* Chart */}
-          {progressData.length > 0 && (
-            <>
-              <h2 className="text-2xl font-bold mb-4">Weight Chart</h2>
-
-              <div className="bg-slate-800 rounded-2xl p-6 shadow-lg max-w-4xl mx-auto mb-6 h-[350px]">
-                <Line data={chartData} options={chartOptions} />
-              </div>
-
-              <hr className="border-slate-700 mb-6" />
-            </>
-          )}
-
-          {/* History */}
-          <h2 className="text-2xl font-bold mb-4">Progress History</h2>
-
-          {progressData.length === 0 ? (
-            <p>No progress yet</p>
-          ) : (
-            <div className="bg-slate-800 rounded-2xl p-4 overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-700">
-                    <th className="text-left p-3">Weight</th>
-                    <th className="text-left p-3">Calories</th>
-                    <th className="text-left p-3">Protein</th>
-                    <th className="text-left p-3">Date</th>
-                    <th className="text-left p-3">Action</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {progressData
-                    .slice()
-                    .reverse()
-                    .map((item) => (
-                      <tr
-                        key={item.id}
-                        className="border-b border-slate-700"
-                      >
-                        <td className="p-3">{item.weight}</td>
-                        <td className="p-3">{item.calories}</td>
-                        <td className="p-3">{item.protein}</td>
-                        <td className="p-3">
-                          {new Date(item.date).toLocaleString()}
-                        </td>
-                        <td className="p-3">
-                          <div className="flex gap-2">
-                            <Link to={`/edit-progress/${item.id}`}>
-                              <button className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg">
-                                Edit
-                              </button>
-                            </Link>
-
-                            <button
-                              onClick={() => setDeleteId(item.id)}
-                              className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+                {userData.calorieTarget ? (
+                  <div className="grid grid-cols-2 gap-y-6 justify-items-center pt-2">
+                    <Plate color={C.chalk} ink={C.rubber} size={120} value={userData.calorieTarget} unit={t("common.kcal")} label={t("dashboard.calories")} />
+                    <Plate color={C.red} size={120} value={userData.proteinTarget} unit={t("common.g")} label={t("dashboard.protein")} />
+                    <Plate color={C.yellow} ink={C.rubber} size={120} value={userData.carbsTarget} unit={t("common.g")} label={t("dashboard.carbs")} />
+                    <Plate color={C.green} size={120} value={userData.fatTarget} unit={t("common.g")} label={t("dashboard.fat")} />
+                  </div>
+                ) : (
+                  <div>
+                    <p className="mb-5" style={{ color: C.dim }}>
+                      {t("dashboard.noPlan")}
+                    </p>
+                    <LinkBtn to="/onboarding">{t("dashboard.setPlan")}</LinkBtn>
+                  </div>
+                )}
+              </Panel>
             </div>
-          )}
-        </>
-      )}
+
+            {/* Chart */}
+            {progressData.length > 0 && (
+              <section className="mb-12">
+                <SectionTitle>{t("dashboard.weightChart")}</SectionTitle>
+                <Panel dir="ltr" className="p-5 h-[320px]">
+                  <Line data={chartData} options={chartOptions} />
+                </Panel>
+              </section>
+            )}
+
+            {/* History */}
+            <section>
+              <SectionTitle>{t("dashboard.history")}</SectionTitle>
+
+              {progressData.length === 0 ? (
+                <p style={{ color: C.dim }}>{t("dashboard.noProgress")}</p>
+              ) : (
+                <Panel className="overflow-x-auto">
+                  <table className="w-full min-w-[560px] whitespace-nowrap tabular-nums">
+                    <thead>
+                      <tr style={{ color: C.dim, borderBottom: `1px solid ${C.line}` }}>
+                        <th className={th}>{t("dashboard.date")}</th>
+                        <th className={th}>{t("dashboard.weight")}</th>
+                        <th className={th}>{t("dashboard.calories")}</th>
+                        <th className={th}>{t("dashboard.protein")}</th>
+                        <th className={th}>
+                          <span className="sr-only">{t("dashboard.action")}</span>
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {progressData
+                        .slice()
+                        .reverse()
+                        .map((item) => (
+                          <tr key={item.id} style={{ borderBottom: `1px solid ${C.line}` }}>
+                            <td className="py-3 px-3" style={{ color: C.dim }}>
+                              {formatDate(item.date, { day: "numeric", month: "short", year: "numeric" })}
+                            </td>
+                            <td className="py-3 px-3 font-bold" style={{ color: C.blueText }}>{item.weight}</td>
+                            <td className="py-3 px-3">{item.calories}</td>
+                            <td className="py-3 px-3" style={{ color: C.redText }}>{item.protein}</td>
+                            <td className="py-3 px-3">
+                              <div className="flex gap-5 justify-end">
+                                <Link
+                                  to={`/edit-progress/${item.id}`}
+                                  className="underline underline-offset-4"
+                                >
+                                  {t("common.edit")}
+                                </Link>
+                                <button
+                                  onClick={() => setDeleteId(item.id)}
+                                  className="underline underline-offset-4"
+                                  style={{ color: C.redText }}
+                                >
+                                  {t("common.delete")}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </Panel>
+              )}
+            </section>
+          </>
+        )}
+      </main>
 
       {/* Delete confirmation */}
       {deleteId && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-50">
-          <div className="bg-slate-800 rounded-2xl p-8 w-full max-w-sm shadow-lg">
-            <h3 className="text-2xl font-bold mb-2">Delete entry?</h3>
-            <p className="text-gray-400 mb-6">
-              This action cannot be undone.
+        <div
+          className="fixed inset-0 flex items-center justify-center p-6 z-50"
+          style={{ background: "rgba(0,0,0,.7)" }}
+        >
+          <Panel className="p-7 w-full max-w-sm" role="dialog" aria-modal="true">
+            <h3 className="text-2xl font-bold mb-2">{t("dashboard.deleteTitle")}</h3>
+            <p className="mb-6" style={{ color: C.dim }}>
+              {t("dashboard.deleteWarning")}
             </p>
 
             <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-xl transition duration-300"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                className="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded-xl transition duration-300"
-              >
-                Delete
-              </button>
+              <Btn variant="ghost" className="flex-1" onClick={() => setDeleteId(null)}>
+                {t("common.cancel")}
+              </Btn>
+              <Btn variant="danger" className="flex-1" onClick={confirmDelete}>
+                {t("common.delete")}
+              </Btn>
             </div>
-          </div>
+          </Panel>
         </div>
       )}
-    </div>
+    </Page>
   );
 }
 

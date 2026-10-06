@@ -3,10 +3,13 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { Navigate, useLocation } from "react-router-dom";
 import { auth, db } from "../services/firebase";
+import { useLanguage } from "../i18n/LanguageContext";
+import { Page, PlateMark, C } from "../design/ui";
 
 // skipOnboardingCheck: نستخدمه في صفحة /onboarding نفسها عشان ما ندخل في حلقة
 function ProtectedRoute({ children, skipOnboardingCheck = false }) {
   const { pathname } = useLocation();
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   // نتيجة الفحص نخزنها مع المفتاح (المستخدم + المسار)،
@@ -51,9 +54,14 @@ function ProtectedRoute({ children, skipOnboardingCheck = false }) {
   }, [user, key, skipOnboardingCheck]);
 
   const loadingScreen = (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-black text-white flex items-center justify-center">
-      <p className="text-gray-400 text-lg">Loading...</p>
-    </div>
+    <Page>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <div className="animate-pulse motion-reduce:animate-none">
+          <PlateMark size={44} />
+        </div>
+        <p style={{ color: C.dim }}>{t("common.loading")}</p>
+      </div>
+    </Page>
   );
 
   if (authLoading) return loadingScreen;

@@ -4,9 +4,22 @@ import { auth, db } from "../services/firebase";
 import { friendlyAuthError } from "../services/authErrors";
 import { doc, setDoc } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
-import { FaDumbbell, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useLanguage } from "../i18n/LanguageContext";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  C,
+  Page,
+  SimpleTopBar,
+  Btn,
+  Panel,
+  Field,
+  Notice,
+  inputClass,
+  inputStyle,
+} from "../design/ui";
 
 function Register() {
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [goal, setGoal] = useState("");
@@ -27,19 +40,19 @@ function Register() {
 
     // تحقق بسيط قبل الإرسال
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("register.errPasswordMismatch"));
       return;
     }
     if (Number(age) < 10 || Number(age) > 100) {
-      setError("Please enter a valid age.");
+      setError(t("register.errAge"));
       return;
     }
     if (Number(height) < 100 || Number(height) > 250) {
-      setError("Height should be between 100 and 250 cm.");
+      setError(t("register.errHeight", { min: 100, max: 250 }));
       return;
     }
     if (Number(goalWeight) < 30 || Number(goalWeight) > 300) {
-      setError("Goal weight should be between 30 and 300 KG.");
+      setError(t("register.errGoalWeight", { min: 30, max: 300 }));
       return;
     }
 
@@ -66,190 +79,172 @@ function Register() {
       navigate("/dashboard");
     } catch (err) {
       console.log(err);
-      setError(friendlyAuthError(err.code));
+      setError(friendlyAuthError(err.code, t));
     } finally {
       setLoading(false);
     }
   };
 
-  const labelClass = "block text-gray-400 text-sm mb-2";
-  const inputClass =
-    "w-full bg-slate-700 rounded-xl px-4 py-3 outline-none placeholder-gray-500 focus:ring-2 focus:ring-blue-500";
+  const numClass = `${inputClass} text-start`;
+  const headingClass = "text-lg font-semibold mb-4";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-black text-white flex items-center justify-center p-6">
-      <div className="w-full max-w-2xl">
-        {/* Logo / Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 mb-4 shadow-lg">
-            <FaDumbbell className="text-3xl" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold">Gym Tracker</h1>
-          <p className="text-gray-400 mt-2">
-            Create your account and start tracking
-          </p>
-        </div>
-
-        <form
-          onSubmit={registerUser}
-          className="bg-slate-800 rounded-2xl p-8 shadow-lg"
-        >
-          <h2 className="text-2xl font-bold mb-6">Register</h2>
-
-          {error && (
-            <div
-              role="alert"
-              className="bg-red-500/10 border border-red-500 text-red-300 rounded-xl px-4 py-3 mb-6 text-sm"
-            >
-              {error}
-            </div>
-          )}
-
-          {/* Personal info */}
-          <p className="text-gray-400 text-xs uppercase tracking-wider mb-3">
-            Personal Info
+    <Page>
+      <SimpleTopBar />
+      <main className="px-5 pb-16">
+        <div className="w-full max-w-2xl mx-auto pt-6 md:pt-12">
+          <h1 className="text-3xl md:text-4xl font-bold">{t("register.title")}</h1>
+          <p className="mt-2 mb-8" style={{ color: C.dim }}>
+            {t("register.subtitle")}
           </p>
 
-          <div className="grid md:grid-cols-2 gap-5 mb-8">
-            <div>
-              <label className={labelClass}>Name</label>
-              <input
-                type="text"
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className={inputClass}
-              />
-            </div>
+          <Panel className="p-6 md:p-8">
+            <form onSubmit={registerUser}>
+              {error && <Notice tone="error" className="mb-6">{error}</Notice>}
 
-            <div>
-              <label className={labelClass}>Age</label>
-              <input
-                type="number"
-                placeholder="25"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                required
-                className={inputClass}
-              />
-            </div>
+              <h2 className={headingClass}>{t("register.personalInfo")}</h2>
+              <div className="grid md:grid-cols-2 gap-5 mb-8">
+                <Field label={t("register.name")} className="md:col-span-2">
+                  <input
+                    type="text"
+                    placeholder={t("register.namePlaceholder")}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className={inputClass}
+                    style={inputStyle}
+                  />
+                </Field>
 
-            <div>
-              <label className={labelClass}>Height (cm)</label>
-              <input
-                type="number"
-                placeholder="175"
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                required
-                className={inputClass}
-              />
-            </div>
+                <Field label={t("register.age")}>
+                  <input
+                    type="number"
+                    placeholder="25"
+                    dir="ltr"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    required
+                    className={numClass}
+                    style={inputStyle}
+                  />
+                </Field>
 
-            <div>
-              <label className={labelClass}>Goal Weight (KG)</label>
-              <input
-                type="number"
-                placeholder="75"
-                value={goalWeight}
-                onChange={(e) => setGoalWeight(e.target.value)}
-                required
-                className={inputClass}
-              />
-            </div>
+                <Field label={t("register.height")}>
+                  <input
+                    type="number"
+                    placeholder="175"
+                    dir="ltr"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    required
+                    className={numClass}
+                    style={inputStyle}
+                  />
+                </Field>
 
-            <div className="md:col-span-2">
-              <label className={labelClass}>Goal</label>
-              <input
-                type="text"
-                placeholder="Lose weight, build muscle..."
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                required
-                className={inputClass}
-              />
-            </div>
-          </div>
+                <Field label={t("register.goalWeight")}>
+                  <input
+                    type="number"
+                    placeholder="75"
+                    dir="ltr"
+                    value={goalWeight}
+                    onChange={(e) => setGoalWeight(e.target.value)}
+                    required
+                    className={numClass}
+                    style={inputStyle}
+                  />
+                </Field>
 
-          {/* Account info */}
-          <p className="text-gray-400 text-xs uppercase tracking-wider mb-3">
-            Account
-          </p>
-
-          <div className="grid md:grid-cols-2 gap-5 mb-8">
-            <div className="md:col-span-2">
-              <label className={labelClass}>Email</label>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                className={inputClass}
-              />
-            </div>
-
-            <div>
-              <label className={labelClass}>Password</label>
-              <div className="flex items-center gap-3 bg-slate-700 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="At least 6 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                  className="bg-transparent outline-none w-full placeholder-gray-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="text-gray-400 hover:text-white"
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
+                <Field label={t("register.goal")} className="md:col-span-2">
+                  <input
+                    type="text"
+                    placeholder={t("register.goalPlaceholder")}
+                    value={goal}
+                    onChange={(e) => setGoal(e.target.value)}
+                    required
+                    className={inputClass}
+                    style={inputStyle}
+                  />
+                </Field>
               </div>
-            </div>
 
-            <div>
-              <label className={labelClass}>Confirm Password</label>
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Repeat your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={6}
-                autoComplete="new-password"
-                className={inputClass}
-              />
-            </div>
-          </div>
+              <h2 className={headingClass}>{t("register.account")}</h2>
+              <div className="grid md:grid-cols-2 gap-5 mb-8">
+                <Field label={t("register.email")} className="md:col-span-2">
+                  <input
+                    type="email"
+                    placeholder={t("register.emailPlaceholder")}
+                    dir="ltr"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    className={numClass}
+                    style={inputStyle}
+                  />
+                </Field>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed py-3 rounded-xl font-semibold transition duration-300"
-          >
-            {loading ? "Creating account..." : "Register"}
-          </button>
+                <Field label={t("register.password")}>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder={t("register.passwordPlaceholder")}
+                      dir="ltr"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      autoComplete="new-password"
+                      className={`${numClass} pe-12`}
+                      style={inputStyle}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? t("register.hidePassword") : t("register.showPassword")}
+                      className="absolute inset-y-0 right-0 w-11 flex items-center justify-center hover:opacity-80 focus-visible:outline focus-visible:outline-2 rounded"
+                      style={{ color: C.dim, outlineColor: C.chalk }}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </Field>
 
-          <p className="text-center text-gray-400 mt-6">
-            Already have an account?{" "}
+                <Field label={t("register.confirmPassword")}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder={t("register.confirmPlaceholder")}
+                    dir="ltr"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
+                    className={numClass}
+                    style={inputStyle}
+                  />
+                </Field>
+              </div>
+
+              <Btn type="submit" disabled={loading} className="w-full min-h-[44px]">
+                {loading ? t("register.submitting") : t("register.submit")}
+              </Btn>
+            </form>
+          </Panel>
+
+          <p className="mt-6" style={{ color: C.dim }}>
+            {t("register.haveAccount")}{" "}
             <Link
               to="/login"
-              className="text-blue-400 hover:text-blue-300 font-semibold"
+              className="underline underline-offset-4 font-semibold"
+              style={{ color: C.chalk }}
             >
-              Login
+              {t("register.login")}
             </Link>
           </p>
-        </form>
-      </div>
-    </div>
+        </div>
+      </main>
+    </Page>
   );
 }
 

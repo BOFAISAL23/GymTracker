@@ -8,12 +8,15 @@ import AddProgress from "./pages/AddProgress";
 import EditProgress from "./pages/EditProgress";
 import Workouts from "./pages/Workouts";
 import Meals from "./pages/Meals";
+import Report from "./pages/Report";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { LanguageProvider } from "./i18n/LanguageContext";
 
 function App() {
   return (
+    <LanguageProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -34,6 +37,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/report"
+          element={
+            <ProtectedRoute>
+              <Report />
             </ProtectedRoute>
           }
         />
@@ -77,6 +89,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
+    </LanguageProvider>
   );
 }
 

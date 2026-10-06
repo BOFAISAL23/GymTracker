@@ -1,17 +1,17 @@
 // حسابات السعرات والماكروز (Mifflin-St Jeor). كلها تقديرات عامة.
 
 export const ACTIVITY_LEVELS = [
-  { id: "sedentary", emoji: "🛋️", label: "Sedentary", desc: "Desk job, little or no exercise", factor: 1.2 },
-  { id: "light", emoji: "🚶", label: "Lightly active", desc: "Exercise 1-3 days a week", factor: 1.375 },
-  { id: "moderate", emoji: "🏃", label: "Moderately active", desc: "Exercise 3-5 days a week", factor: 1.55 },
-  { id: "high", emoji: "🏋️", label: "Very active", desc: "Hard exercise 6-7 days a week", factor: 1.725 },
-  { id: "athlete", emoji: "🔥", label: "Athlete", desc: "Intense training or a physical job", factor: 1.9 },
+  { id: "sedentary", emoji: "🛋️", factor: 1.2 },
+  { id: "light", emoji: "🚶", factor: 1.375 },
+  { id: "moderate", emoji: "🏃", factor: 1.55 },
+  { id: "high", emoji: "🏋️", factor: 1.725 },
+  { id: "athlete", emoji: "🔥", factor: 1.9 },
 ];
 
 export const GOALS = [
-  { id: "cut", emoji: "📉", label: "Cut", desc: "Lose fat (about 20% fewer calories)", adjust: -0.2, protein: 2.0, text: "Lose weight" },
-  { id: "bulk", emoji: "📈", label: "Bulk", desc: "Build muscle (about 10% more calories)", adjust: 0.1, protein: 1.8, text: "Build muscle" },
-  { id: "maintain", emoji: "⚖️", label: "Maintain", desc: "Stay at your current weight", adjust: 0, protein: 1.6, text: "Maintain weight" },
+  { id: "cut", emoji: "📉", adjust: -0.2, protein: 2.0 },
+  { id: "bulk", emoji: "📈", adjust: 0.1, protein: 1.8 },
+  { id: "maintain", emoji: "⚖️", adjust: 0, protein: 1.6 },
 ];
 
 export function calculatePlan({ sex, age, height, weight, activity, goal }) {

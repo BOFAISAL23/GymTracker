@@ -12,13 +12,37 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../services/firebase";
 import { ACTIVITY_LEVELS, GOALS, calculatePlan } from "../services/nutrition";
-import { FaDumbbell, FaMars, FaVenus, FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { useLanguage } from "../i18n/LanguageContext";
+import { FaMars, FaVenus, FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import {
+  C,
+  Page,
+  SimpleTopBar,
+  Btn,
+  Panel,
+  Plate,
+  Field,
+  Notice,
+  inputClass,
+  inputStyle,
+} from "../design/ui";
 
 const TOTAL_STEPS = 5;
+
+const SEGMENT_COLORS = [C.red, C.blue, C.yellow, C.green, C.chalk];
+
+const GOAL_TEXT_EN = {
+  cut: "Lose weight",
+  bulk: "Build muscle",
+  maintain: "Maintain weight",
+};
 
 function Onboarding() {
   const navigate = useNavigate();
   const user = auth.currentUser;
+  const { t, dir } = useLanguage();
+  const BackIcon = dir === "rtl" ? FaArrowRight : FaArrowLeft;
+  const NextIcon = dir === "rtl" ? FaArrowLeft : FaArrowRight;
 
   const [step, setStep] = useState(0);
   const [sex, setSex] = useState("");
@@ -67,16 +91,16 @@ function Onboarding() {
 
   const validate = () => {
     if (step === 0) {
-      if (!sex) return "Please choose your sex.";
-      if (Number(age) < 14 || Number(age) > 90) return "Enter an age between 14 and 90.";
+      if (!sex) return t("onboarding.err.sex");
+      if (Number(age) < 14 || Number(age) > 90) return t("onboarding.err.age");
     }
     if (step === 1) {
-      if (Number(height) < 120 || Number(height) > 230) return "Height should be between 120 and 230 cm.";
-      if (Number(weight) < 30 || Number(weight) > 300) return "Weight should be between 30 and 300 KG.";
-      if (Number(goalWeight) < 30 || Number(goalWeight) > 300) return "Goal weight should be between 30 and 300 KG.";
+      if (Number(height) < 120 || Number(height) > 230) return t("onboarding.err.height");
+      if (Number(weight) < 30 || Number(weight) > 300) return t("onboarding.err.weight");
+      if (Number(goalWeight) < 30 || Number(goalWeight) > 300) return t("onboarding.err.goalWeight");
     }
-    if (step === 2 && !activity) return "Please choose your activity level.";
-    if (step === 3 && !goal) return "Please choose your goal.";
+    if (step === 2 && !activity) return t("onboarding.err.activity");
+    if (step === 3 && !goal) return t("onboarding.err.goal");
     return "";
   };
 
@@ -112,8 +136,6 @@ function Onboarding() {
     setError("");
 
     try {
-      const g = GOALS.find((x) => x.id === goal);
-
       await setDoc(
         doc(db, "users", user.uid),
         {
@@ -121,7 +143,7 @@ function Onboarding() {
           age: Number(age),
           height: Number(height),
           goalWeight: Number(goalWeight),
-          goal: g.text,
+          goal: GOAL_TEXT_EN[goal],
           goalType: goal,
           activity,
           calorieTarget: plan.calories,
@@ -155,240 +177,240 @@ function Onboarding() {
       navigate("/dashboard");
     } catch (err) {
       console.log(err);
-      setError("Could not save your plan. Please try again.");
+      setError(t("onboarding.saveError"));
       setSaving(false);
     }
   };
 
-  const inputClass =
-    "w-full bg-slate-700 rounded-xl px-4 py-3 outline-none placeholder-gray-500 focus:ring-2 focus:ring-blue-500";
-  const labelClass = "block text-gray-400 text-sm mb-2";
-  const optionClass = (selected) =>
-    `w-full text-left rounded-xl px-4 py-3 border transition ${
-      selected
-        ? "bg-blue-600/20 border-blue-500"
-        : "bg-slate-700 border-transparent hover:border-slate-500"
-    }`;
+  const optionStyle = (selected) => ({
+    border: `2px solid ${selected ? C.chalk : C.line}`,
+    background: selected ? "rgba(237,234,227,.08)" : "transparent",
+    color: C.chalk,
+    outlineColor: C.chalk,
+  });
+  const optionBase =
+    "w-full text-start rounded px-4 py-3 min-h-[44px] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+  const titleClass = "text-2xl md:text-3xl font-bold mb-6";
+
+  const renderOptions = (items, current, setter, prefix) => (
+    <div className="flex flex-col gap-3">
+      {items.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          aria-pressed={current === o.id}
+          onClick={() => setter(o.id)}
+          className={optionBase}
+          style={optionStyle(current === o.id)}
+        >
+          <span className="block font-bold">
+            {o.emoji} {t(`onboarding.${prefix}.${o.id}.label`)}
+          </span>
+          <span className="block text-sm mt-1" style={{ color: C.dim }}>
+            {t(`onboarding.${prefix}.${o.id}.desc`)}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-black text-white flex items-center justify-center p-6">
-      <div className="w-full max-w-lg">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 mb-3 shadow-lg">
-            <FaDumbbell className="text-2xl" />
-          </div>
-          <h1 className="text-3xl font-extrabold">Let's build your plan</h1>
-          <p className="text-gray-400 mt-1 text-sm">
-            Step {step + 1} of {TOTAL_STEPS}
+    <Page>
+      <SimpleTopBar />
+      <main className="max-w-xl mx-auto px-5 pb-16">
+        <div className="mt-4 mb-8">
+          <p className="text-sm mb-3" style={{ color: C.dim }}>
+            {t("onboarding.step", { current: step + 1, total: TOTAL_STEPS })}
           </p>
+          <div className="flex gap-2">
+            {SEGMENT_COLORS.map((color, i) => (
+              <div
+                key={i}
+                className="flex-1 rounded-full"
+                style={{ height: 6, background: i <= step ? color : C.line }}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="w-full h-2 bg-slate-700 rounded-full mb-6 overflow-hidden">
-          <div
-            className="h-full bg-blue-500 transition-all duration-300"
-            style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
-          />
-        </div>
+        {error && <Notice tone="error" className="mb-6">{error}</Notice>}
 
-        <div className="bg-slate-800 rounded-2xl p-8 shadow-lg">
-          {error && (
-            <div
-              role="alert"
-              className="bg-red-500/10 border border-red-500 text-red-300 rounded-xl px-4 py-3 mb-5 text-sm"
-            >
-              {error}
+        {/* Step 1: sex + age */}
+        {step === 0 && (
+          <div>
+            <h1 className={titleClass}>{t("onboarding.about")}</h1>
+
+            <p className="text-sm mb-2" style={{ color: C.dim }}>{t("onboarding.sex")}</p>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {[
+                ["male", FaMars],
+                ["female", FaVenus],
+              ].map(([id, Icon]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={sex === id}
+                  onClick={() => setSex(id)}
+                  className={`${optionBase} flex flex-col items-center gap-2 py-5`}
+                  style={optionStyle(sex === id)}
+                >
+                  <Icon className="text-2xl" aria-hidden="true" />
+                  <span className="font-semibold">{t(`onboarding.${id}`)}</span>
+                </button>
+              ))}
             </div>
-          )}
 
-          {/* Step 1: sex + age */}
-          {step === 0 && (
-            <div>
-              <h2 className="text-xl font-bold mb-5">About you</h2>
-
-              <label className={labelClass}>Sex</label>
-              <div className="grid grid-cols-2 gap-4 mb-5">
-                <button
-                  type="button"
-                  onClick={() => setSex("male")}
-                  className={`${optionClass(sex === "male")} flex flex-col items-center gap-2 py-5`}
-                >
-                  <FaMars className="text-2xl" />
-                  Male
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSex("female")}
-                  className={`${optionClass(sex === "female")} flex flex-col items-center gap-2 py-5`}
-                >
-                  <FaVenus className="text-2xl" />
-                  Female
-                </button>
-              </div>
-
-              <label className={labelClass}>Age</label>
+            <Field label={t("onboarding.age")}>
               <input
                 type="number"
+                dir="ltr"
                 placeholder="25"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
-                className={inputClass}
+                className={`${inputClass} text-start`}
+                style={inputStyle}
               />
-            </div>
-          )}
-
-          {/* Step 2: body */}
-          {step === 1 && (
-            <div>
-              <h2 className="text-xl font-bold mb-5">Your body</h2>
-
-              <label className={labelClass}>Height (cm)</label>
-              <input
-                type="number"
-                placeholder="175"
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                className={`${inputClass} mb-5`}
-              />
-
-              <label className={labelClass}>Current weight (KG)</label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="85"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className={`${inputClass} mb-5`}
-              />
-
-              <label className={labelClass}>Goal weight (KG)</label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="75"
-                value={goalWeight}
-                onChange={(e) => setGoalWeight(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-          )}
-
-          {/* Step 3: activity */}
-          {step === 2 && (
-            <div>
-              <h2 className="text-xl font-bold mb-5">Daily activity</h2>
-              <div className="space-y-3">
-                {ACTIVITY_LEVELS.map((a) => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    onClick={() => setActivity(a.id)}
-                    className={optionClass(activity === a.id)}
-                  >
-                    <span className="font-semibold">
-                      {a.emoji} {a.label}
-                    </span>
-                    <span className="block text-sm text-gray-400">{a.desc}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: goal */}
-          {step === 3 && (
-            <div>
-              <h2 className="text-xl font-bold mb-5">Your goal</h2>
-              <div className="space-y-3">
-                {GOALS.map((g) => (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => setGoal(g.id)}
-                    className={optionClass(goal === g.id)}
-                  >
-                    <span className="font-semibold">
-                      {g.emoji} {g.label}
-                    </span>
-                    <span className="block text-sm text-gray-400">{g.desc}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: result */}
-          {step === 4 && plan && (
-            <div>
-              <h2 className="text-xl font-bold mb-1">Your daily plan</h2>
-              <p className="text-gray-400 text-sm mb-5">
-                Based on your details, here is your daily target.
-              </p>
-
-              <div className="bg-blue-600/20 border border-blue-500 rounded-2xl p-6 text-center mb-5">
-                <p className="text-gray-300 text-sm">Calories</p>
-                <p className="text-5xl font-extrabold">{plan.calories}</p>
-                <p className="text-gray-400 text-xs mt-1">kcal per day</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 mb-5">
-                <div className="bg-slate-700 rounded-xl p-4 text-center">
-                  <p className="text-gray-400 text-xs">Protein</p>
-                  <p className="text-xl font-bold">{plan.protein}g</p>
-                </div>
-                <div className="bg-slate-700 rounded-xl p-4 text-center">
-                  <p className="text-gray-400 text-xs">Carbs</p>
-                  <p className="text-xl font-bold">{plan.carbs}g</p>
-                </div>
-                <div className="bg-slate-700 rounded-xl p-4 text-center">
-                  <p className="text-gray-400 text-xs">Fat</p>
-                  <p className="text-xl font-bold">{plan.fat}g</p>
-                </div>
-              </div>
-
-              <p className="text-gray-500 text-xs">
-                Maintenance is about {plan.tdee} kcal. These are general estimates, not medical advice.
-              </p>
-            </div>
-          )}
-
-          {/* Buttons */}
-          <div className="flex items-center justify-between mt-8">
-            {step > 0 ? (
-              <button
-                type="button"
-                onClick={back}
-                disabled={saving}
-                className="flex items-center gap-2 text-gray-400 hover:text-white"
-              >
-                <FaArrowLeft /> Back
-              </button>
-            ) : (
-              <span />
-            )}
-
-            {step < TOTAL_STEPS - 1 ? (
-              <button
-                type="button"
-                onClick={next}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold transition"
-              >
-                Next <FaArrowRight />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={finish}
-                disabled={saving}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed px-6 py-3 rounded-xl font-semibold transition"
-              >
-                {saving ? "Saving..." : "Start tracking"}
-              </button>
-            )}
+            </Field>
           </div>
+        )}
+
+        {/* Step 2: body */}
+        {step === 1 && (
+          <div>
+            <h1 className={titleClass}>{t("onboarding.body")}</h1>
+            <div className="flex flex-col gap-5">
+              <Field label={t("onboarding.height")}>
+                <input
+                  type="number"
+                  dir="ltr"
+                  placeholder="175"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  className={`${inputClass} text-start`}
+                  style={inputStyle}
+                />
+              </Field>
+              <Field label={t("onboarding.weight")}>
+                <input
+                  type="number"
+                  dir="ltr"
+                  step="0.1"
+                  placeholder="85"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  className={`${inputClass} text-start`}
+                  style={inputStyle}
+                />
+              </Field>
+              <Field label={t("onboarding.goalWeightLabel")}>
+                <input
+                  type="number"
+                  dir="ltr"
+                  step="0.1"
+                  placeholder="75"
+                  value={goalWeight}
+                  onChange={(e) => setGoalWeight(e.target.value)}
+                  className={`${inputClass} text-start`}
+                  style={inputStyle}
+                />
+              </Field>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: activity */}
+        {step === 2 && (
+          <div>
+            <h1 className={titleClass}>{t("onboarding.activityTitle")}</h1>
+            {renderOptions(ACTIVITY_LEVELS, activity, setActivity, "activity")}
+          </div>
+        )}
+
+        {/* Step 4: goal */}
+        {step === 3 && (
+          <div>
+            <h1 className={titleClass}>{t("onboarding.goalTitle")}</h1>
+            {renderOptions(GOALS, goal, setGoal, "goal")}
+          </div>
+        )}
+
+        {/* Step 5: result */}
+        {step === 4 && plan && (
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{t("onboarding.planTitle")}</h1>
+            <p className="mb-8" style={{ color: C.dim }}>{t("onboarding.planIntro")}</p>
+
+            <Panel className="p-6 mb-6">
+              <div className="flex flex-wrap items-center justify-center gap-6">
+                <Plate
+                  color={C.chalk}
+                  ink={C.rubber}
+                  size={150}
+                  value={plan.calories}
+                  unit={t("onboarding.kcalPerDay")}
+                  label={t("onboarding.calories")}
+                />
+                <Plate
+                  color={C.red}
+                  ink="#fff"
+                  size={100}
+                  value={plan.protein}
+                  unit={t("common.g")}
+                  label={t("onboarding.protein")}
+                />
+                <Plate
+                  color={C.yellow}
+                  ink={C.rubber}
+                  size={100}
+                  value={plan.carbs}
+                  unit={t("common.g")}
+                  label={t("onboarding.carbs")}
+                />
+                <Plate
+                  color={C.green}
+                  ink="#fff"
+                  size={100}
+                  value={plan.fat}
+                  unit={t("common.g")}
+                  label={t("onboarding.fat")}
+                />
+              </div>
+            </Panel>
+
+            <p className="text-xs" style={{ color: C.dim }}>
+              {t("onboarding.disclaimer", { tdee: plan.tdee })}
+            </p>
+          </div>
+        )}
+
+        {/* Buttons */}
+        <div className="flex items-center justify-between gap-4 mt-10">
+          {step > 0 ? (
+            <button
+              type="button"
+              onClick={back}
+              disabled={saving}
+              className="inline-flex items-center gap-2 min-h-[44px] pe-3 rounded hover:opacity-80 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              style={{ color: C.dim, outlineColor: C.chalk }}
+            >
+              <BackIcon aria-hidden="true" /> {t("common.back")}
+            </button>
+          ) : (
+            <span />
+          )}
+
+          {step < TOTAL_STEPS - 1 ? (
+            <Btn type="button" onClick={next} className="min-h-[44px]">
+              {t("common.next")} <NextIcon aria-hidden="true" />
+            </Btn>
+          ) : (
+            <Btn type="button" onClick={finish} disabled={saving} className="min-h-[44px]">
+              {saving ? t("onboarding.saving") : t("onboarding.start")}
+            </Btn>
+          )}
         </div>
-      </div>
-    </div>
+      </main>
+    </Page>
   );
 }
 
