@@ -347,7 +347,7 @@ function Dashboard() {
               {progressData.length === 0 ? (
                 <p style={{ color: C.dim }}>{t("dashboard.noProgress")}</p>
               ) : (
-                <Panel className="overflow-x-auto">
+                <Panel className="relative overflow-x-auto">
                   <table className="w-full min-w-[560px] whitespace-nowrap tabular-nums">
                     <thead>
                       <tr style={{ color: C.dim, borderBottom: `1px solid ${C.line}` }}>

@@ -353,7 +353,7 @@ function Workouts() {
         ) : workouts.length === 0 ? (
           <p style={{ color: C.dim }}>{t("workouts.empty")}</p>
         ) : (
-          <Panel className="overflow-x-auto">
+          <Panel className="relative overflow-x-auto">
             <table className="w-full min-w-[640px] whitespace-nowrap tabular-nums">
               <thead>
                 <tr style={{ color: C.dim, borderBottom: `1px solid ${C.line}` }}>

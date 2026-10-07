@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 // نظام التصميم: "أقراص الحديد". ألوان أقراص الأوزان الأولمبية تصير لغة البيانات:
 // أحمر = بروتين، أزرق = الوزن، أصفر = كارب، أخضر = دهون، أبيض (طباشير) = سعرات.
+import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { FaSignOutAlt } from "react-icons/fa";
@@ -111,7 +112,10 @@ export function TopBar() {
   });
 
   return (
-    <header style={{ borderBottom: `1px solid ${C.line}` }}>
+    <header
+      className="sticky top-0 z-40 backdrop-blur"
+      style={{ borderBottom: `1px solid ${C.line}`, background: "rgba(27,29,28,.94)" }}
+    >
       <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
         <Link to="/dashboard" className="flex items-center gap-3 font-bold text-lg">
           <PlateMark />
@@ -219,49 +223,79 @@ export function Plate({ color, ink = "#fff", value, unit, label, size = 130 }) {
   );
 }
 
-// ---------- بار الأقراص (تقدم الهدف) ----------
+// ---------- بار الهدف (تقدم الهدف) ----------
+// خط البار يمتلي بحسب التقدم، والأقراص تنزلق على الخط وتزيد كل 20%.
 const SLOTS = [
-  { c: C.red, h: 72 },
-  { c: C.blue, h: 62 },
-  { c: C.yellow, h: 52 },
-  { c: C.green, h: 42 },
-  { c: C.chalk, h: 32 },
+  { c: C.red, h: 60 },
+  { c: C.blue, h: 50 },
+  { c: C.yellow, h: 40 },
+  { c: C.green, h: 32 },
+  { c: C.chalk, h: 24 },
 ];
 
 export function PlateBar({ percent = 0 }) {
   const { dir } = useLanguage();
-  const loaded = Math.min(5, Math.ceil(Math.max(0, percent) / 20));
+  const target = Math.min(100, Math.max(0, Number(percent) || 0));
+  const [shown, setShown] = useState(0);
+  const side = dir === "rtl" ? "right" : "left";
+  const loaded = target > 0 ? Math.min(5, Math.ceil(target / 20)) : 0;
+
+  // يبدأ من الصفر ويتحرك للنسبة الحالية
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setShown(target));
+    return () => cancelAnimationFrame(id);
+  }, [target]);
+
+  const move = "transition-all duration-1000 ease-out motion-reduce:transition-none";
 
   return (
-    <div
-      dir="ltr"
-      role="img"
-      aria-label={`${Math.round(percent)}%`}
-      className="flex items-center"
-      style={{ flexDirection: dir === "rtl" ? "row-reverse" : "row" }}
-    >
-      {/* الأقراص: الأكبر قرب البار */}
-      <div className="flex items-center gap-1" style={{ flexDirection: dir === "rtl" ? "row-reverse" : "row" }}>
-        {[...SLOTS].reverse().map((s, i) => {
-          const idx = SLOTS.length - 1 - i;
-          const filled = idx < loaded;
-          return (
-            <div
-              key={idx}
-              style={{
-                width: 14,
-                height: s.h,
-                borderRadius: 3,
-                background: filled ? s.c : "transparent",
-                border: filled ? "none" : `1.5px dashed ${C.line}`,
-                transition: "background .4s",
-              }}
-            />
-          );
-        })}
+    <div dir="ltr" role="img" aria-label={`${Math.round(target)}%`} className="px-8 pt-1">
+      <div className="relative" style={{ height: 76 }}>
+        {/* المسار */}
+        <div
+          className="absolute rounded-full"
+          style={{ top: 34, height: 8, insetInline: 0, background: C.line }}
+        />
+        {/* الجزء المنجز */}
+        <div
+          className={`absolute rounded-full ${move}`}
+          style={{ top: 34, height: 8, [side]: 0, width: `${shown}%`, background: C.chalk }}
+        />
+        {/* علامات 25 / 50 / 75 */}
+        {[25, 50, 75].map((m) => (
+          <span
+            key={m}
+            className="absolute"
+            style={{ top: 46, [side]: `${m}%`, width: 1, height: 8, background: C.line }}
+          />
+        ))}
+        {/* الأقراص على الخط */}
+        <div
+          className={`absolute flex items-center gap-[3px] ${move}`}
+          style={{
+            top: 38,
+            [side]: `${shown}%`,
+            transform: `translate(${side === "left" ? "-50%" : "50%"}, -50%)`,
+          }}
+        >
+          {loaded === 0 ? (
+            <div className="rounded-full" style={{ width: 14, height: 14, background: C.chalk }} />
+          ) : (
+            SLOTS.slice(0, loaded).map((sl, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 10,
+                  height: sl.h,
+                  borderRadius: 3,
+                  background: sl.c,
+                  boxShadow: "inset 0 0 0 1px rgba(0,0,0,.25)",
+                }}
+              />
+            ))
+          )}
+        </div>
       </div>
-      {/* البار */}
-      <div className="flex-1 h-2 rounded-full" style={{ background: C.dim, opacity: 0.55, minWidth: 40 }} />
     </div>
   );
 }
