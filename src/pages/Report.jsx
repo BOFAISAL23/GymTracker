@@ -94,9 +94,10 @@ function Report() {
       lastWeight = weights[weights.length - 1];
       const before = [...weights].reverse().find((x) => x.t <= weekAgo && x.t >= twoWeeksAgo);
       const first = before || weights.find((x) => x.t > weekAgo);
-      if (first && first.t !== lastWeight.t) {
+      // لازم يكون بين القراءتين يوم على الأقل، وإلا الفرق مب مفيد
+      if (first && lastWeight.t - first.t >= 86400000) {
         weightDelta = r1(lastWeight.w - first.w);
-        weightSpanDays = Math.max(1, Math.round((lastWeight.t - first.t) / 86400000));
+        weightSpanDays = Math.round((lastWeight.t - first.t) / 86400000);
       }
     }
 
@@ -226,7 +227,7 @@ function Report() {
                     color={C.blue}
                     value={data.weightDelta === null ? r1(data.lastWeight.w) : `\u200E${data.weightDelta > 0 ? "+" : ""}${data.weightDelta}`}
                     unit={t("common.kg")}
-                    label={data.weightDelta === null ? t("report.weightNow") : t("report.weightChangeDays", { n: data.weightSpanDays })}
+                    label={data.weightDelta === null ? t("report.weightNow") : t(data.weightSpanDays === 1 ? "report.weightChange1Day" : "report.weightChangeDays", { n: data.weightSpanDays })}
                     size={140}
                   />
                 )}
